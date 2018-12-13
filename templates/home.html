@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" 
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <style>
+      .message {
+        border-left: 1px solid gainsboro; 
+        margin-left: 10px; 
+        padding: 0 0 0px 10px;
+      }
+    </style>
+
+    <script>
+
+      function reply(msgId) {
+        let $replyForm = $('#reply-form');
+        let $hiddenMsgIdField = $('#reply-form > #hidden_msg_id');
+        let oldMsgId = $hiddenMsgIdField.val();
+        $replyForm.appendTo($('#cntrl-panel-'+msgId));
+        $hiddenMsgIdField.val(msgId);
+        $('#reply-btn-'+oldMsgId).show();
+        $('#reply-btn-'+msgId).hide();
+        $replyForm.show();
+        $(document.body).animate({
+          scrollTop: $('#message-'+msgId).offset().top
+        }, 1000);
+      }
+
+      function reply_close() {
+        let msgId = $('#reply-form > #hidden_msg_id').val();
+        $('#reply-form').hide();
+        $('#reply-btn-'+msgId).show();
+      }
+
+    </script>
+
+  </head>
+  <body>
+    <div class="container theme-showcase" role="main">
+
+      <hr/>
+      <form method="POST" action="/ui/msgs">
+        <input type="hidden" >
+        <div class="form-group">
+            <input type="text" class="form-control"
+                   name="msg_text">
+        </div>
+        <button type="submit" class="btn btn-primary"
+                name="action" value="add_new">add new message</button>
+      </form>
+      <hr/>
+      <form method="POST" action="/ui/msgs">
+        <div id="reply-form" class="form-group-sm" style="display: none;">
+            <input id="hidden_msg_id" type="hidden" name="parent_id" value="">
+            <input type="text" class="form-control input-sm"
+                   name="msg_text" placeholder="Type your message here...">
+            <button type="submit" class="btn btn-xs btn btn-default"
+                    name="action" value="add_sub">submit reply</button>
+            <button type="button" class="btn btn-xs btn btn-default"
+                    onclick="reply_close();">cancel</button>
+        </div>
+        <h1>Messages</h1>
+        {%- for msg in msgs[top_id]|sort(attribute='id') recursive %}
+        <div id="message-{{ msg.id }}" class="message">
+          <p style="padding-top: 10px;">{{ msg.text }}</p>
+          <div id="cntrl-panel-{{ msg.id }}">
+            <a id="reply-btn-{{ msg.id }}" class="btn btn-xs btn-default"
+               onclick="reply({{ msg.id }});">reply</a>
+          </div>
+          {{ loop(msgs[msg.id]|sort(attribute='id')) }}
+        </div>
+        {%- endfor %}
+      </form>
+    </div>
+  </body>
+</html>
